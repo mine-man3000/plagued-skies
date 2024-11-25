@@ -1,6 +1,6 @@
 {
-    "parent": "block/cube_all",
-    "textures": {
-        "all": "plaguesky:blocks/dragonskin"
-    }
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "plaguesky:block/dragonskin"
+  }
 }

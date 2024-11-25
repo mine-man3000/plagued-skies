@@ -89,8 +89,8 @@ not needed in the present version of the pack.
 
 Changes:
 
-v1.5:
- * Ported to 1.20.1
+v1.4:
+ * Ported to 1.16
  * Added feature to remove dragonskin using beacon
  * Removed chunk load command
  * 'Patchy' decay currently not implemented

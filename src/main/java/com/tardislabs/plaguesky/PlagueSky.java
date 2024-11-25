@@ -1,21 +1,28 @@
 package com.tardislabs.plaguesky;
 
-import org.apache.logging.log4j.Logger;
+import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.logging.LogUtils;
 
+import com.tardislabs.plaguesky.blocks.BlockRegistry;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.Mod.EventHandler;
-import net.minecraftforge.fml.common.SidedProxy;
-import net.minecraftforge.fml.common.event.FMLInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
+import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import org.slf4j.Logger;
 
-@Mod(modid = PlagueSky.MODID, name = PlagueSky.NAME, version = PlagueSky.VERSION)
-public class PlagueSky
-{
-	/**
-	 * The unique identifier for this mod 
-	 */
+
+// The value here should match an entry in the META-INF/mods.toml file
+@Mod(PlagueSky.MODID)
+public class PlagueSky {
+    /**
+     * The unique identifier for this mod
+     */
     public static final String MODID = "plaguesky";
     /**
      * The name of this mod
@@ -24,55 +31,36 @@ public class PlagueSky
     /**
      * The version of this mod
      */
-    public static final String VERSION = "1.3.1";
-
+    public static final String VERSION = "1.5";
     /**
-     * A logger for printing debugging info to the console
+     * Event handler for dragon egg being placed
      */
-    public static Logger logger;
-    
-    public static void mutter( String info )
-    {
-    	if( Config.debug )
-    	{
-    		logger.info( info );
-    	}
+
+    // Directly reference a slf4j logger
+    public static final Logger LOGGER = LogUtils.getLogger();
+
+    public PlagueSky() {
+        IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
+
+        BlockRegistry.register(eventBus);
+        ItemRegistry.register(eventBus);
+
+        MinecraftForge.EVENT_BUS.register(this);
+
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.COMMON_SPEC);
     }
 
-	public static Data store = null;
-    public static int heal = -1;
-    
-    /**
-     * The Forge proxy for performing client- or server-specific functions
-     */
-    @SidedProxy( clientSide = "com.tardislabs.plaguesky.ClientProxy", serverSide = "com.tardislabs.plaguesky.CommonProxy")
-    public static CommonProxy proxy;
-    
-    @EventHandler
-    public void preInit( FMLPreInitializationEvent event )
-    {
-        logger = event.getModLog();
-        proxy.preInit( event );
+    public static void mutter(String message) {
+        LOGGER.info(message);
     }
 
-    @EventHandler
-    public void init( FMLInitializationEvent event )
-    {
-    	proxy.init( event );
+    @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
+    public static class ClientModEvents {
+        @SubscribeEvent
+        public static void RegisterClientCommandsEvent(RegisterCommandsEvent event) {
+            CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
+
+            CommandHandler.register(dispatcher);
+        }
     }
-
-    @EventHandler
-    public void postInit( FMLPostInitializationEvent event )
-    {
-    	// PlagueSky.mutter( "------------------------------------------------- Attempting to call postinit" );
-    	proxy.postInit( event );
-    }
-
-    @EventHandler
-	public void serverStart( FMLServerStartingEvent event ) 
-	{
-    	proxy.serverStart( event );
-	}
-
 }
-

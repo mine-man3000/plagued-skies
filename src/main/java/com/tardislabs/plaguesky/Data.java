@@ -1,64 +1,79 @@
 package com.tardislabs.plaguesky;
 
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.world.World;
-import net.minecraft.world.storage.MapStorage;
-import net.minecraft.world.storage.WorldSavedData;
+import java.io.File;
+import java.io.IOException;
+import java.io.FileWriter;
+import java.util.Objects;
+import java.util.Scanner;
 
-public class Data extends WorldSavedData 
-{
-    private static final String tagKey = "PlagueSky";
+/*
+* Yes... this is the cursed shit I had to do to get this to work properly... - Mineman
+* */
 
+public class Data {
     private boolean heal = false;
 
-	public Data( String name ) 
-	{
-		super( name );
-	}
-	
-	public static Data get( World world )
-	{
-		MapStorage storage = world.getPerWorldStorage();
-		Data result = (Data) storage.getOrLoadData( Data.class, tagKey );
-		// PlagueSky.mutter( "-------------------- Loaded data. Was " + (result == null ? "null" : "not null") );
-	
-		if( result == null ) 
-		{
-			result = new Data( tagKey );
-			if( Config.healDefault ) result.heal = true;
-			storage.setData( tagKey, result );
-		}
-		
-		return result;
-	}
+    private final String levelPath;
 
-	public void readFromNBT( NBTTagCompound nbt ) 
-	{
-		// PlagueSky.mutter( "In readFromNBT. " + nbt.getSize() );
-		if( nbt.hasKey( "heal" )) heal = nbt.getBoolean( "heal" );
-	}
-
-	public NBTTagCompound writeToNBT( NBTTagCompound nbt ) 
-	{
-		nbt.setBoolean( "heal",  heal );
-		// PlagueSky.mutter( "In writeToNBT. " + nbt.getSize() );
-		return nbt;
-	}
-	
-    public boolean isHealing()
-    {
-    	return heal;
+    public Data(String levelPath) {
+        this.levelPath = levelPath;
+        create();
     }
 
-	public void setHealing( boolean value )
-    {
-		heal = value;
-		markDirty();
+    public void save() {
+        try {
+            FileWriter myWriter = new FileWriter(levelPath + "plaguesky");
+            myWriter.write(String.valueOf(heal));
+            myWriter.close();
+            PlagueSky.mutter("SAVED");
+        } catch (IOException exception) {
+            PlagueSky.mutter(exception.getMessage());
+        }
     }
 
-	public void setHealing()
-    {
-    	setHealing( true );
+    public void create() {
+        try {
+            File myObj = new File(levelPath + "plaguesky");
+            if (myObj.createNewFile()) {
+                PlagueSky.mutter("File created: " + levelPath + "plaguesky");
+                FileWriter myWriter = new FileWriter(levelPath + "plaguesky");
+                myWriter.write("false");
+                myWriter.close();
+            } else {
+                PlagueSky.mutter("File already exists.");
+            }
+        } catch (IOException exception) {
+            PlagueSky.mutter(exception.getMessage());
+
+        }
     }
 
+    public boolean read() {
+       try {
+           File myObj = new File(levelPath + "plaguesky");
+           Scanner myReader = new Scanner(myObj);
+           String data = myReader.nextLine();
+
+           heal = Objects.equals(data, "true");
+           myReader.close();
+           PlagueSky.mutter("READ");
+       }
+       catch (IOException exception) {
+           PlagueSky.mutter(exception.getMessage());
+       }
+        return heal;
+    }
+
+    public boolean isHealing() {
+        return read();
+    }
+
+    public void setHealing(boolean value) {
+        heal = value;
+        save();
+    }
+
+    public void setHealing() {
+        setHealing(true);
+    }
 }
