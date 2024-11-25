@@ -96,9 +96,9 @@ public class Config {
                             "This can be a resource ID (minecraft:stone) or a tag" +
                             "entry (forge:ores/iron)")
                     .defineList("dropBlocks", ImmutableList.of(
-                            "forge:blocks/iron_ores",
-                            "forge:blocks/diamond_ores",
-                            "forge:blocks/gold_ores"
+                            "forge:ores/iron",
+                            "forge:ores/diamond",
+                            "forge:ores/gold"
                     ), (val) -> true);
 
             debug = builder
